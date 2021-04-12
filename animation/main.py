@@ -17,7 +17,7 @@ def process(filename: str) -> list[int]:
 
 
 def generate():
-    win = Image.open("win.png").convert('1')  # type: Image.Image
+    win = Image.open("god.png").convert('1')  # type: Image.Image
     for i in range(32):
         ni = Image.new("1", (32, 32))  # type: Image.Image
         ni.paste(win, (31 - i, 0))
