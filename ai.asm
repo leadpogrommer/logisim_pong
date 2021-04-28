@@ -92,18 +92,12 @@ finish:br finish
 mvnum:
 # r0 - source
 # r1 - destination
-push r0
-push r1
-push r2
 ld r0, r2
 st r1, r2
 inc r0
 inc r1 
 ld r0, r2
 st r1, r2
-pop r2
-pop r1
-pop r0
 rts
 
 
