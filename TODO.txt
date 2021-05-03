@@ -1,0 +1,4 @@
+change ball angle based on bat speed
+[DONE] respanw ball on the opposite side
+[DONE] fix ai
+make victory possible (now ai never misses)

@@ -9,8 +9,8 @@ def write_image(filename, arr):
     f.close()
 
 
-speed = 2
-max_angle = math.pi/3
+speed = 1
+max_angle = 0.906 # max angle that does not cause overflows (~ 52 deg)
 sins = []
 for i in range(0, 128):
     s = math.sin(i / 127 * max_angle) * speed

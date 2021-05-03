@@ -1,18 +1,27 @@
 asect 0x00
 # 0xCD - undocummented instruction that sets SP to it's operrand
-dc 0xcd, 0xdf 
+dc 0xcd, 0xdf
 
 ldi r0, start
-ldi r1, 0x80
 push r0
-push r1
+ldi r0, 0x80
+push r0
 rti
+
+
 
 start:
 
+ldi r0, op
+ldi r1, 0b00000010
+st r0, r1
+xor r1,r1
+st r0,r1
+
+
+
 
 ldi r0, bx
-
 ld r0, r2
 not r2
 inc r0
@@ -42,6 +51,10 @@ st r1, r0
 
 # now begin division
 ldi r0, op2
+ldi r1, 0xc0
+jsr mvnum
+
+ldi r0, 0xc0
 ldi r1, op1
 jsr mvnum
 
@@ -54,6 +67,12 @@ ldi r0, 1
 ldi r1, op
 st r1, r0
 
+
+#ldi r0, op2
+#ldi r1, 0xc3
+#jsr mvnum
+
+
 ldi r0, by
 ld r0, r2
 inc r0
@@ -64,15 +83,22 @@ ld r1, r0
 inc r1
 ld r1, r1
 
+
 add r1, r3
 addc r0, r2
 # now we need r2
 
+#ldi r0, 0xc6
+#st r0, r2
+#inc r0
+#st r0, r3
+
+
 tst r2
 bpl ready
-ldi r0, -64
-cmp r2, r0
-bgt low_negate 
+ldi r0, vy
+ld r0, r0
+bmi low_negate 
 # high_add_128
 ldi r0, 127
 add r0, r2
@@ -83,8 +109,20 @@ neg r2
 
 ready:
 shl r2
+# now we need only 5 high bits
+ldi r0, 0b11111000
+and r0, r2
+
+tst r2 # probably unnecessary tst
+bz do_write
+ldi r0, 0b00001000
+sub r2, r0
+move r0, r2
+
+do_write:
 ldi r0, bat
 st r0, r2
+
 
 finish:br finish
 
@@ -101,6 +139,10 @@ st r1, r2
 rts
 
 
+
+
+
+
 asect 0xe0
 varA: ds 2
 w: dc 0x80, 0x00
@@ -113,7 +155,7 @@ asect 0xf4
 by:
 
 asect 0xf6
-vx:
+vx: dc 0x13,0x37
 
 asect 0xf8
 vy:
