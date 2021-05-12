@@ -37,7 +37,7 @@ def asm():
     os.chdir(cwd)
     if err_msg is not None:
         print("COMPILE ERROR: ", err_msg)
-        return
+        sys.exit(-1)
 
     rom = [0] * 256
 
@@ -50,7 +50,7 @@ def asm():
             for byte in mem_content:
                 if mem_addr > 255:
                     print("LINK ERROR: program too large")
-                    return
+                    sys.exit(-1)
                 rom[mem_addr] = byte
                 mem_addr += 1
     write_image('firmware/ai.img', rom)

@@ -2,13 +2,6 @@ asect 0x00
 # 0xCD - undocummented instruction that sets SP to it's operrand
 dc 0xcd, 0xdf
 
-# CDM-8 mark 5 doesn't have reset pin, so we will use interrupts instead of it
-# the following block of code enables interrupts
-ldi r0, start   
-push r0			# rti will jump to this address
-ldi r0, 0x80	# rti will set PS to 0x80, so interrupts will be enabled
-push r0
-rti
 
 
 # main logic goes here
@@ -127,9 +120,7 @@ do_write:
 ldi r0, bat
 st r0, r2
 
-# wait for reset interrupt in infinite loop
-# TODO: figure out if wait or halt can be used here
-endless_torture:br endless_torture
+halt
 
 # this subroutine moves 16-bit numbers
 # prameters:
