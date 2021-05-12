@@ -188,6 +188,7 @@ def animations():
         frames = []
         team = file_image('team_logo.png')
         thanks = file_image('thanks.png')
+        # naming is not mine
         god = file_image('god.png')
         logo = file_image('logo.png')
         frames += still_image(team, 3)
