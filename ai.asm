@@ -1,3 +1,25 @@
+# This file contains AI source code for Pong game
+#
+# Memory map:
+# 0x00 - 0x7f: program ROM
+# 0x80 - 0xf1: RAM
+# 0xf2 - 0xff: IO devices described below
+#
+# Cdm-8 is connected to hardwre multiplier/divider
+# 
+# Readable IO devices (two addresses => 16-bit device):
+# 0xf2, 0xf3: x coordinate of the ball
+# 0xf4, 0xf5: y coordinate of the ball
+# 0xf6, 0xf7: x velocity of the ball
+# 0xf8, 0xf9: y velocity of the ball
+# 0xfc, 0xfd: result of multiplication/division
+# 
+# Writable IO devices
+# 0xfa, 0xfb: first operand for multiplier/divider
+# 0xfc, 0xfd: second operand for multiplier/divider
+# 0xfe      : operation (0 - multiplication, 1 - division)
+# 0xff      : bat position
+
 asect 0x00
 # 0xCD - undocummented instruction that sets SP to it's operrand
 dc 0xcd, 0xdf

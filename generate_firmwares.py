@@ -39,7 +39,7 @@ def asm():
         print("COMPILE ERROR: ", err_msg)
         sys.exit(-1)
 
-    rom = [0] * 256
+    rom = [0] * 128
 
     # this primitive linker ignores code overlapping
     for line in obj_code.splitlines():
@@ -48,9 +48,9 @@ def asm():
             mem_addr = int(mem_addr, 16)
             mem_content = list(map(lambda a: int(a, 16), mem_content.split()))  # type: [int]
             for byte in mem_content:
-                if mem_addr > 255:
-                    print("LINK ERROR: program too large")
-                    sys.exit(-1)
+                if mem_addr > 127:
+                    print(f'WARNING: byte {hex(byte)} at address {hex(mem_addr)} does not fit into ROM')
+                    continue
                 rom[mem_addr] = byte
                 mem_addr += 1
     write_image('firmware/ai.img', rom)
