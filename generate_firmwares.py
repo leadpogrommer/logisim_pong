@@ -3,6 +3,7 @@ import sys
 import math
 from PIL import Image
 import random
+import json
 sys.path.append(os.path.join(sys.path[0], 'third_party'))
 import cocas
 
@@ -203,6 +204,24 @@ def animations():
             f.save('frames/%03d.png' % i)
         return process(frames)
 
+    def generate_easter_egg():
+        json_file = open('ba.json')
+        img_list_list = json.loads(json_file.read())
+        frames = []
+        for img_list in img_list_list:
+            im = Image.new("1", (32, 32), 0 if img_list[0] == 0 else 255)
+            c = 0 if img_list[0] == 1 else 255
+            img_list.pop(0)
+            for i in img_list:
+                x, y, w = i
+                for xx in range(w):
+                    xx = xx + x
+                    cx = xx % 32
+                    cy = (xx // 32) * 8 + y
+                    im.putpixel((cx, cy), c)
+            frames.append(im)
+        return process(frames)
+
     bin_arr = []
 
     # Addresses printed here must be manually put into video_chip constants
@@ -218,6 +237,11 @@ def animations():
     print("Start loose:", hex(len(bin_arr)))
     bin_arr += process(fade(file_image('black.png'), file_image('looser.png'), 16))
     print("End loose:", hex(len(bin_arr) - 1))
+
+    print("Start easter egg:", hex(len(bin_arr)))
+    bin_arr += generate_easter_egg()
+    print("End easter egg:", hex(len(bin_arr) - 1))
+
 
     f = open('../firmware/animation.img', mode='wb')
     f.write(bytes("v2.0 raw\n", 'UTF-8'))
