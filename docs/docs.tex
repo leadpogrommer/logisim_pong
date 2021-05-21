@@ -1,7 +1,9 @@
 \documentclass[12pt,a4paper]{article}
-\usepackage{fullpage}
+\usepackage[cm]{fullpage}
 \usepackage[utf8]{inputenc}
 \usepackage{indentfirst}
+\usepackage{wrapfig}
+\usepackage{placeins}
 
 \usepackage{graphicx}
 \graphicspath{ {./img/} }
@@ -10,6 +12,8 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{float}
 
+\usepackage{listings}
+\usepackage{color}
 
 \let\oldsection\section
 \renewcommand\section{\clearpage\oldsection}
@@ -22,12 +26,43 @@
     \end{figure}
 }
 
+\newcommand{\chip}[1]{{\itshape#1}}
+\newcommand{\pin}[1]{\textbf{#1}}
+
+\newenvironment{pins}{
+    
+    \let\oldpin\pin
+    \renewcommand{\pin}[1]{\item\oldpin{##1}}
+    \newcommand{\inputs}[1]{
+        
+    Input pins:\begin{itemize}##1\end{itemize}}
+    \newcommand{\outputs}[1]{
+        
+    Output pins:\begin{itemize}##1\end{itemize}}
+}{}
+
+\makeatletter 
+\def\WFfill{\par 
+    \ifx\parshape\WF@fudgeparshape 
+    \nobreak 
+    \ifnum\c@WF@wrappedlines>\@ne 
+    \advance\c@WF@wrappedlines\m@ne 
+    \vskip\c@WF@wrappedlines\baselineskip 
+    \global\c@WF@wrappedlines\z@ 
+    \fi 
+    \allowbreak 
+    \WF@finale 
+    \fi 
+} 
+\makeatother
+
 \begin{document}
     \begin{titlepage}
         \begin{center}
+            \vspace*{0.3\textheight}
+
             {\Huge \textbf {Enhanced Pong}}
 
-            \vspace{0.5cm}
             {\LARGE Digital platforms project B}
 
             \vspace{1.5cm}
@@ -40,146 +75,199 @@
         \end{center}
     \end{titlepage}
     \tableofcontents
-    \section{Introduction and work description}
 
-    This documentation have been made for describing contents of our semester project “The game of TV-Tennis”.  This game were invented in 1969 by Ralph Baering and was called “The Game of Pong”. It were played by specific controller with two joysticks for two people on the one of the first TV model “Brown Box”. In our game would be only one human player and the second one would an artificial intelligence.
 
-    Used programs and developing tools: Logisim v.2.7.1, CocoIDE v.1.91, PythonIDE v.3.8, Java 11.
-
-    Our reasons of taking this project:
-    \begin{itemize}
-        \item We found most interesting of all three. The most attractive part of it is that it uses one comparatively big pixel display and joystick instead of buttons like in projects A and B.
-        \item It is middle difficulty in realization. When we were on stage of choosing, it was not so primitively looking like “The Game of Noughts and Crosses” and not as hard as “The Game of Mancala”. 
-    \end{itemize}
-    The next step was to determine roles in our project. Our roles:
-    \begin{itemize}
-        \item Merzlyakov Ilya – made whole artificial intelligence and scripts of uploading images, took part in designing digital scheme by making ball moving computation
-        \item Batenko Nikita – took part in making video system (video chips, video decoder and score counting), has written documentation and drew most of pictures for the game
-        \item Feshchenko Igor – in cooperation with Ilya made kinematic controller and system of writing and reading data to/from memory, took major part in designing digital scheme
-    \end{itemize}
-    he contribution in our project of each teammate has divided like this: 
-    Ilya Merzlyakov – about 40\%, Batenko Nikita – 30\%, Feshchenko Igor 30\%.
-    \subsection{Our main goal}
-    Make playable game with nice looking intro and outros for winning and losing. The ball movement trajectory is simple which computes for constant angles (± 30°) and simple AI, which reacts on changing sign of ball angle. The computer can only move its bat while the ball is in the left-hand half of the screen (the human player’s half). As soon as the ball enters the right-hand half, the game controller (kinematic controller) blocks the right bat.
-
-    We have completed minimum goal for about 5-6 weeks and continued expand project by extensions that will be described next.
-
-    \subsection{Extensions}
-    The first extension we made is a start/restart button. It allows restarting the whole game to the beginning (excluding introduction). It resets scores to zero, resets ball and bats positions.
-
-    The second additional goal was harder. We decided to make game more interesting by improving ball movement angles. We made more complex angle system, which allows ball to move not only straight and by diagonal of two angles (30° or 150°), but using 256 angles in range from $-{\pi\over4}$ to $\pi\over4$. Sometimes it leads ball to move in hardly predictable ways.
-
-    However, such way of computing ball movement requires of better artificial intelligence, which must predict balls trajectory. It uses a little bit more math formulas for it comparing to base version, which determines bats behavior mostly by sign of coordinates of ball. Now, we work on it.
-
-    And the last, but not the least improvement is graphical. We made an algorithm, which shows introduction pictures, winning and losing screens in appropriate situations (beginning playing, winning AI or losing to it).
-
-    \subsection{Working process and problems}
-    We had not have a concrete plan of work, but now all working progress can be divided on the following points:
-    \begin{enumerate}
-        \item Choose and build convenient system architecture
-        \item Connect memory and processor to display\begin{enumerate}
-            \item Make video chips
-            \item Connect video chips to display
-            \item Connect memory and processor to video system
-        \end{enumerate}
-        \item Write kinematic controller\begin{enumerate}
-            \item Write inner chips for kinematic
-            \item Make kinematic controller systems
-        \end{enumerate}
-        \item Connect kinematic controller to video system
-        \item Make and connect scoring system
-        \item Write base AI and make appropriate connections to processor and main memory (RAM)
-        \item Make restart button
-        \item Make “cut scenes” addition\begin{enumerate}
-            \item Draw pictures
-            \item Write Python encoding program
-            \item Make decoder scheme
-            \item Connect decoder to video system and add conditions of launching
-        \end{enumerate}
-        \item Upgrade trajectory-computing system \begin{enumerate}
-            \item Add RAMs containing trigonometric representations of angles to kinematic controller
-            \item Upgrade velocity and angles computing sub-schemes of kinematic controller
-        \end{enumerate}
-        \item Improve AI
-        \item Rearrange scheme for nicer looking, add more commentaries to code
-        \item Write documentation
-    \end{enumerate}
-
-    During the work, we have faced the problem of regular reuploading of our memory images for AI, images and angles table into Logisim after refreshing the project. To save some time and make work less routine Ilya has wrote a Java script, which automatically loads memory images, when it is needed. It is out of our project and this script is not described here.
-
-    At this point, the introduction ends and begins the description of project. It splits on two big parts:
-    \begin{itemize}
-        \item Description of digital scheme of our project
-        \item Description of game artificial intelligence and its working principle
+    \section{Overview}
+    \dofigure{main}{Game display}
+    We implemented a fully functional Pong (or TV-Tennis) game, based on design document, but with some extensions:\begin{itemize}
+        \item ball now can fly at 512 different angles (compared to 4 from original specification)
+        \item when one player gets a point, the ball respawns at the side of hit player directed to other player
+        \item game now is not endless, it ends after one player reaches 5 points
+        \item animations: they play on system start and after game over 
+        \item real gamepad is used, logisim library was written in Kotlin to support it
+        \item ball velocity is slightly changed in the middle of the screen, so AI will miss sometimes
+        \item ball direction changes based on which part of the bat it was reflected by
     \end{itemize}
 
 
-    \section{Digital scheme}
-    Before jumping into details, the whole system plan must be introduced. It is hard to show whole scheme directly, because in that case there would be too much little and hardly readable details. Here is an oversimplified plan of our blueprint (Picture 1). In the next sections of documentation, more circuits that are detailed would be shown. In this you can see a division of our project on modules and how they interact with each other.
-    \dofigure{scheme.png}{Oversimplified plan of digital scheme}
-
-    The contents of scheme:
+    \section{Hardware design}
+    \dofigure{scheme.png}{Hardware architecture}
+    Or project's circuit can be divided into three subsystems:
     \begin{itemize}
-        \item The Player interface part consists of 32x32 pixels display and number indicators, which show the current score of human player and bot.
-        \item Video chips is a pack of 4 connected video sections, each of which consists of 8 video chips connected to each other. There are 32 video chips in total for every column of display pixels.
-        \item Kinematic controller is a complex pack of partly independent circuits including angle and velocity computation chips. Whole module computes angle and velocity of ball; detects and computes hitting of walls and bats; updates scores.
-        \item Video player exists for only one purpose – to show intro, winning and losing screens, when specific conditions fulfilled.
-        \item The block with start/restart button and joystick is a part of user interface too. They are used to launch or restart the game and to control the left bat.
-        \item Game conditions block is used to execute video player and end game, when winning or losing conditions are fulfilled.
-        \item The CdM-8 (mark 5) processor – the heart of the whole digital scheme. Used to execute program code, which can be taken from memory block.
-        \item Data reading/writing block is a sequence of 14 similar circuits, which read and write data from/to registers of processor and give it to Kinematic controller module, Operations accelerator module.
-        \item  Operations accelerator – the module, which accelerates division and multiplication operations for processor. Helps to compute ball trajectory.
-        \item Memory consists of RAM, which contains program with AI for right bat.
+        \item video system - draws gameplay elements (ball and bats) and plays animations;
+        \item game mechanics system - responsible for actual gameplay;
+        \item ai system - controls bot movement.
     \end{itemize}
+    Also there is \chip{main} chip, which glues all this systems together and also contains graphical display.
 
-    As you can see, Data reading/writing block, Operation accelerator, Processor and memory are combined together in one AI block.
-
-    The best frequencies to play the game are 256Hz or 512Hz. On these frequencies, the ball will have such speed that it would be a challenge for human to reflect it with bat and not too fast, that AI would be unbeatable. 
-
-    \subsection{Video chips}
-    Video systems consists of two parts: video chips and video player. We will start with video chips. As were said, video chips are combined in 4 blocks with 8 chips in each – 32 chips in total. 
-
-    % \begin{figure}[h]
-    %     \centering
-    %     \includegraphics[width=\textwidth]{video_section.png}
-    %     \caption{Video section}
-    % \end{figure}
-    \dofigure{video_section.png}{Video Section}
-    Every video section and every chip inside them receive five 5-bit numbers: ballX and ballY – coordinates of ball, leftbatX and leftbatY – coordinates of bats and chipID – the unique ID of every chip and column of 32 pixels to which it connects.
-    \dofigure{video_chip.png}{Video chip}
-
-    Inner circuit is just a decoder which only activates when chipID matches specified constant.
-
-    As you can see in Picture 3, if some chip should show the left or right bat, its coordinates are combined with the similar but moved on 1 and 2 bits. In the result, there are three pixels of bats will be showed.
     
-    ImageDataIn pin is needed for showing pictures from video player (introduction, winning, losing). It receives pictures decoded into binary 32-bit sequences. controlIn pin controls when pictures received in ImageDataIn pin should be showed. These extensions are not involved in game process and remain constant during playing.
 
-    \subsection{Video player}
-    Video player is used to send 32x32 binary representations of pictures from additional ROM to video system. It has input pins clock, set, enable and num.
+    Now all said systems will be described.
 
-    \dofigure{video_player.png}{Video player circuit}
+    
 
-    Clock is connected to frequency generator and allows video player to work on similar principles like processor, memory etc.
+    \subsection{Video system}
+    This system is responsible for rendering graphics on 32x32 display. It can operate in two modes: {\itshape gameplay} mode and {\itshape video} mode. These mode are selected with \pin{enable} pin of \chip{video\_player} chip. In the first mode, ball and bats are visible on the screen; in the second mode \chip{video\_player} can draw arbitrary images on screen. This subsection consists of the following chips: 
+    \chip{video\_chip}, \chip{video\_section} and \chip{video\_player}.
 
-    Set determines when video player should work. It receives 0, if game is not on and pictures should be shown. And 1, if game have started already.
+    \subsubsection{Video\_chip}
+    \dofigure{video_chip}{Video\_chip}
+    This chip controls one column of the screen; to control one display we need to connect 32 of these chips in a row. Because this chip is intended to be connected to other \chip{video\_chip}s, most of it's inputs are wired directly to corresponding outputs (except \pin{chipID}). \pin{chipID} actually defines column number the chip is connected to, so \pin{chipID out} pin is set to \pin{chipID input}+1.
+    In {\itshape gameplay} mode this chip draws ball at specified height if \pin{ballX}  equals to \pin{chipID}. Also it draws bat if \pin{chipID} equals to 3 (left bat) or 28 (right bat). \pin{leftbatY} and \pin{rightbatY} define coordinate of the bottommost pixel of corresponding bat. The {\itshape video} mode is enabled by bit 7 of \pin{controlIn} and will be described later.
 
-    Enable receives 1, if conditions for showing pictures are fulfilled and 0, if not.
+    \subsubsection{Video\_section}
+    This is just an assembly of 8 \chip{video\_chip}s connected one after another. 
 
-    Num pin is for case when one of players have won. It receives 0, if there is now victory of someone. It receives 1, if human player have lost. And Num receives 2, if human player have won. Number from this pin determines from which memory address reading should be started and on which it must end. In other words, it determines, which memory segment with picture in it should be taken. 
+    \subsubsection{Video\_player}
+    \dofigure{video_player}{Video\_player chip}
+    \begin{pins}
+        \inputs{
+            \pin{enable} - If 1, video mode is active
+            \pin {num} - Animation number
+            \pin {set} - When 1, starts animation with specified number
+            \pin {clock} 
+        }
 
-    Video player connects to video system directly and receives indicators from different condition circuits. 
-It returns data – 32-bit segment from encoded picture – and control – an 8-bit number. Bits from 0 to 4th of it are compared with chipID to determine, which of them must show current data on display. 5th bit connects with clock and works as updating signal. 6th bit is a conditional signal for updating picture – it helps to do some simple animation effects with pictures. And the last 7th bit is 1, when pictures should be shown, and 0, if not. Its value depends on current game state – is it started, in progress or ended with someone’s victory.
+        \outputs{
+            \pin {ctrl} - \chip{video\_chip} control
+            \pin {data} - Current pixel column
+        }
+    \end{pins}
+
+    This chip has ROM with all animations. One animation is simply a sequency of frames, and one frame is a sequence of 32 32-bit values (columns). To draw one frame of animation, this chip must send all columns of this frames to corresponding \chip{video\_chip}s. To do so, it firstly selects needed chip with bits 0-4 of \pin{ctrl}. Then it sets \pin{data} to current column of the image, and by rising bit 5 of \pin{ctrl} it tells selected \chip{video\_chip} to store column data in intermediate register. When the whole frame is stored in these registers, it raises bit 6 of \pin{ctrl}, so all \chip{video\_chip}s update their outputs simultaneously. Bit 7 of \pin{ctrl} switches \chip{video\_chip}s into {\itshape{video}} mode.
+
+    Constants below the chip define start and end addresses of all animations.
 
 
+    \subsection{AI}
+    \dofigure{ai}{AI chip}
+    \begin{pins}
+        \inputs{
+            \pin{bx} - X coordinate of ball
+            \pin{by} - Y coordinate of ball
+            \pin{vx} - X component of velocity
+            \pin{vy} - Y component of velocity
+            \pin{reset} - Cdm-8 reset
+            \pin{clock}
+        }
+        \outputs{
+            \pin{result} - Calculated bat position
+        }
+    \end{pins}
 
+    To predict ball position, Cdm-8 must perform multiplication and division.
+    Since ball coordinates and velocity are represented as 16-bit fixed-point numbers (fraction part stored in bits 0-6), Cdm-8 is not powerful enough to perform multiplication and division, so hardware multiplier and divider are mapped to it's memory to speed up calculations.
 
-
+    Cdm-8 here is used in Von Neumann mode (code and data are in the same address space), but it reads program from ROM mapped to a lower half of address space, and uses RAM mapped to a higher half of address space, so there is no need for loading firmware into RAM on every system start.
 
     
 
 
+    \subsection{Kinematic controller}
+    \dofigure{kinematic_overview}{Kinematic controller overview}
+    \begin{pins}
+        \inputs{
+            \pin{reset} - game restart
+            \pin{ly} - left bat position
+            \pin{ry} - right bat position
+        }
+        \outputs{
+            \pin{xb} - 16-bit X coordinate of ball
+            \pin{yb} - 16-bit Y coordinate of ball
+            \pin{vx} - 16-bit X component of ball velocity
+            \pin{vy} - 16-bit Y component of ball velocity
+            \pin{a} - left player score
+            \pin{b} - right player score
+            \pin{five pins on east side} - output to \chip{video\_chip}s
+        }
+    \end{pins}
+    This chip is responsible for all gameplay mechanics.
+
+    Let's define some internal terminology for later use in this subsection:\begin{itemize}
+        \item hit - event when ball touches vertical edge of the screen
+        \item posReset - event triggered on reset and hit
+        \item bx, by - ball coordinates
+        \item vx, vy - ball velocity
+    \end{itemize}
+    Ball coordinates and velocity are represented as 16-bit fixed-point numbers (fraction part stored in bits 0-6).
 
 
+    Every clock cycle  ball coordinates are updated by corresponding velocity components, then velocity is updated if ball collision occurred. Also it counts players' score and adds smoothness to right bat's movement (since AI sets it's position only once while the ball is moving towards it). Bat collision is detected by comparison of x coordinate of ball and bar, and wall collision detection is detected when addition of velocity component to ball coordinate cause overflow.
+    
+    
+
+    Now some parts of kinematic controller will be described with more detail.
+    \subsubsection{Ball position calculation}
+    \begin{wrapfigure}{rh}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.48\textwidth]{ball_position_calculation}
+        \caption{Ball position calculation unit}
+    \end{wrapfigure}
+    This part of \chip{kinematic} controller is responsible for storing and updating (on every clock cycle) ball coordinates. If there was no hit, it calculates $bx \leftarrow bx+vx$ and $by \leftarrow by+vy$. If there was a hit, it resets ball position and places the ball on side of the screen so the ball will fly through the whole screen to player eho get the point at this tick (side is selected based on the ball direction).
+    \WFfill
+    \WFclear
+
+    \subsection{Ball velocity calculation}
+    \dofigure{ball_velocity_calculation}{Ball velocity calculation unit}
+    This part is responsible for storage and updation of ball velocity.
+    It separately stores ball angle (a value from $[-52^{\circ};+52^{\circ}]$ mapped to $[-127;127]$) and ball direction along X axis (in vxneg register, 1 - negative direction, 0 - positive direction). If posReset happens, it sets angle to random value, and sets X direction so the ball will fly towards the player who got point on this tick. If the ball collides with the bat, it changes X direction to opposite.
+    When ball hits horizontal edge of the screen, it just negates it's angle, but when the ball is reflected by bat, it sets angle to $by-bat$, so, for example, if the ball was reflected by top side of the bat, it will fly upwards.
+
+    Also this unit slightly changes angle by random value after the ball travels half the distance from left side to right side of the screen, so AI sometimes will miss.
+
+    Vx and vy are calculated as $\cos{angle}$ and $\sin{angle}$ respectively by \chip{velocity\_calculator} chip. It just reads this values from pregenerated ROM chips.
+
+    $52^{\circ}$ is the maximum angle that does not cause overflow when calculating $(228-bx)*\tan{angle}$
+    
+
+
+
+
+    
+    \subsection{Miscellaneous circuitry}
+    \dofigure{misc}{Miscelanious circuitry}
+    \chip{AI} chip is placed in the top right corner of the picture. Note that bx, by, vx, vy are connected to it through registers. Their values are updated only when ball starts flying from left  to right. These registers serve two purposes: first, the prevent ai from cheating by setting bat coordinate to ball coordinate in loop, an second, they prevent data corruption, since Cdm-8 cannot read input values instantly, and these values can change in the middle of reading.
+
+    \chip{Video\_chip} is placed in the bottom right corner. It is connected to animation selection circuitry. Animation numbers: 0 - startup, 1 - win, 2 - loose.
+
+
+    \section{Cdm-8 software}
+    To predict ball position when it's x coordinate will be equal to 228 (coordinate of right bat), Cdm-8 must calculate following formula: {\Large $result=by + {(228-bx)*vy \over vx}$}. Here is complete and well-commented source code for Cdm-8. It's flowchart is attached below.
+
+    \definecolor{eclipseBlue}{RGB}{42,0.0,255}
+    \definecolor{eclipseGreen}{RGB}{63,127,95}
+    \lstset{
+        breakatwhitespace=true,
+        breaklines=true,
+        numbers=left
+    }
+    \lstdefinelanguage{cdm8}{
+        morecomment=[l]{\#},
+        commentstyle=\color{eclipseGreen},
+        keywordstyle=\color{eclipseBlue},
+        morekeywords={r0, r1, r2, r3, ext, ld, st, ldi, ldc, move, add, addc, sub, cmp, and, or, xor, not, neg, dec, inc, shr, shra, shla, rol, push, pop, jsr, rts, osi, osix, rti, crc, br, beq, bz, bne, bnz, bhs, bcs, blo, bcc, bmi, bpl, bvs, bvc, bhi, bls, bge, blt, bgt, ble, ret, nop, wait, halt, pushall, popall, setsp, addsp, ldsa, ioiosix, rti, asect, rsect, end, dc, ds, tplate, p0, p1, p2, p3, p4, p5, p6, p7, run, else, if, fi, is, gt, lt, le, ge, mi, pl, eq, ne, z, nz, cs, cc, vs, vchi, lo, hs, ls, macro, mpop, mpush, mend, continue, wend, until, while, save, restore, define, stsp, ldsp, stays, true, break, tst, clr, do, then, unique, first_item, item, last_item, jmp, jsrr, shl, banything, bngt, bnge, bneq, bnne, bnlt, bnle, bnhi, bnhs, bncs, bnlo, bnls, bncc, bnmi, bnpl, bnfalse, bntrue, bnvs, bnvc, bnvs, define, ldv, stv, ei, di}
+    }
+    \lstinputlisting[language=cdm8]{../ai.asm}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[height=0.9\textheight]{flowchart.png}
+        \caption{Algorithm flowchart}
+    \end{figure}
+
+    \section{Software}
+    To make development process easier, and to add more features to the project, some software was developed.
+    \subsection{generate\_firmwares.py script}
+    This script was written to automatically generate 4 binary images:\begin{itemize}
+        \item ai.img - compiled Cdm-8 program, this script uses cocas.py from CocoIDE distribution to do it.
+        \item animation.img - all animations generated by this script. Used in \chip{video\_player}
+        \item cos.img and sin.img - tables for \chip{velocity\_calculator} chip
+    \end{itemize}
+    This script is pretty well commented and will not be described here.
+    \subsection{AutoRAM Logisim library}
+    It is named AutoRAM due to historical reasons (it was used to automatically load Cdm-8 firmware to RAM on simulation reset).
+    Now it is used to access real gamepad connected to host logisim runs on.
+    This library is written in kotlin, it's sources are available at github: {\color{blue}\url{https://github.com/leadpogrommer/logisim_convinient_ram}} (yes, I know about a typo in repository name)
 
 
 

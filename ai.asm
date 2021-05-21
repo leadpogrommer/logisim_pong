@@ -29,17 +29,18 @@ dc 0xcd, 0xdf
 # main logic goes here
 # it computes the following formula: by + (228 - bx)*vy/vx
 # 228 = x coordinate of our bat
-# all numbers are 16-bit fixed-point (fractional part is stored in 7 least significant bits) big-endian
+# all numbers are 16-bit fixed-point  big-endian 
+# (fractional part is stored in 7 least significant bits)
 start:
-ldi r0, bx		# load x coordinate of the ball into r2 and r3
-ld r0, r2			
+ldi r0, bx          # load x coordinate of the ball into r2 and r3
+ld r0, r2            
 inc r0
 ld r0, r3
-not r2			# now we have -bx-1 in registers
+not r2              # now we have -bx-1 in registers
 not r3
 
 
-ldi r1, 0x01    # add 228 + 1
+ldi r1, 0x01        # add 228 + 1
 add r1, r3
 ldi r1, 0x72
 addc r1, r2
@@ -47,11 +48,12 @@ addc r1, r2
 
 
 # now multiply by vy
-# since cdm-8 isn't powerful enough, we use hardware multiplier and divisor
+# since cdm-8 isn't powerful enough, 
+# we use hardware multiplier and divisor
 # op  - operation code
 # op1 - first operand
 # op2 - second operand when writing, result when reading
-ldi r0, op1		# set operand 1 to 228-bx
+ldi r0, op1        # set operand 1 to 228-bx
 st r0, r2
 inc r0
 st r0, r3
@@ -67,7 +69,8 @@ ldi r1, op
 st r1, r0
 
 # we cannot just copy result to operand 1
-# because when first byte of result is written to operand, result will immediately change
+# because when first byte of result is written to operand, 
+# result will immediately change
 # so we store the product in memory
 # TODO: rewrite it using registers only
 ldi r0, op2
@@ -75,22 +78,22 @@ ldi r1, 0xc0
 jsr mvnum
 
 # now divide by vx
-ldi r0, 0xc0		# set operand 1 to (228-bx)*vy
+ldi r0, 0xc0            # set operand 1 to (228-bx)*vy
 ldi r1, op1
 jsr mvnum
 
-ldi r0, vx			# set operand 2 to vx
+ldi r0, vx              # set operand 2 to vx
 ldi r1, op2
 jsr mvnum
 
-ldi r0, 1			# set operation to division (operation 1)
+ldi r0, 1               # set operation to division (operation 1)
 ldi r1, op
 st r1, r0
 
 
 
 # load y coorinate of the ball into r2, r3
-ldi r0, by			
+ldi r0, by            
 ld r0, r2
 inc r0
 ld r0, r3
@@ -106,32 +109,33 @@ add r1, r3
 addc r0, r2
 
 # now we only need contents of r2 since bat position are 5 bit
-# if bit 7 of r2 is set, the ball was reflected either from top or from bottom
+# if bit 7 of r2 is set,
+# the ball was reflected either from top or from bottom
 tst r2
 bpl ready
 # if reflection occured, we need to know was it top or bootom
 # the following block of code handles it, but i cannot remember how
-# TODO: understand my code	
+# TODO: understand my code    
 ldi r0, vy
 ld r0, r0
 bmi low_negate 
 # high_add_128
-ldi r0, 127		
-add r0, r2		
+ldi r0, 127        
+add r0, r2        
 br ready
 low_negate:
 neg r2
 
 # now we have our answer - bat coordinate
 ready:
-shl r2								# it was shifted right
-ldi r0, 0b11111000					# we need only 5 high bits
+shl r2                                  # it was shifted right
+ldi r0, 0b11111000                      # we need only 5 high bits
 and r0, r2
 
 # in kinematic controller, bat coordinate represents it's lowest pixel
 # but we want to reflect ball with central pixel
 # so we decrease r2 if it is not zero
-tst r2 								# probably unnecessary tst
+tst r2                                  # probably unnecessary tst
 bz do_write
 ldi r0, 0b00001000
 sub r2, r0
