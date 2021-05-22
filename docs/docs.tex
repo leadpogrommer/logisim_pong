@@ -80,11 +80,11 @@
     \section{Overview}
     \dofigure{main}{Game display}
     We implemented a fully functional Pong (or TV-Tennis) game, based on design document, but with some extensions:\begin{itemize}
-        \item ball now can fly at 512 different angles (compared to 4 from original specification)
+        \item now, ball can fly at 512 different angles (compared to 4 from original specification)
         \item when one player gets a point, the ball respawns at the side of hit player directed to other player
-        \item game now is not endless, it ends after one player reaches 5 points
+        \item game is not endless now, it ends when one player gets 5 points
         \item animations: they play on system start and after game over 
-        \item real gamepad is used, logisim library was written in Kotlin to support it
+        \item real gamepad is used, to support it logisim library was written in Kotlin 
         \item ball velocity is slightly changed in the middle of the screen, so AI will miss sometimes
         \item ball direction changes based on which part of the bat it was reflected by
         \item ball velocity always equals to 1
@@ -96,27 +96,24 @@
     Or project's circuit can be divided into three subsystems:
     \begin{itemize}
         \item video system - draws gameplay elements (ball and bats) and plays animations;
-        \item game mechanics system - responsible for actual gameplay;
+        \item gameplay system (\chip{kinematic controller}) - responsible for actual gameplay;
         \item ai system - controls bot movement.
     \end{itemize}
-    Also there is \chip{main} chip, which glues all this systems together and also contains graphical display.
-
-    
-
+    Also there is \chip{main} chip, which glues all these systems together and also contains graphical display.
     Now all said systems will be described.
 
     
 
     \subsection{Video system}
-    This system is responsible for rendering graphics on 32x32 display. It can operate in two modes: {\itshape gameplay} mode and {\itshape video} mode. These mode are selected with \pin{enable} pin of \chip{video\_player} chip. In the first mode, ball and bats are visible on the screen; in the second mode \chip{video\_player} can draw arbitrary images on screen. This subsection consists of the following chips: 
+    This system is responsible for rendering graphics on 32x32 display. It can operate in two modes: {\itshape gameplay} mode and {\itshape video} mode. These mode are selected with \pin{enable} pin of \chip{video\_player} chip. In the first mode, ball and bats are visible on the screen; in the second mode, \chip{video\_player} can draw arbitrary images on screen. This subsection consists of the following chips: 
     \chip{video\_chip}, \chip{video\_section} and \chip{video\_player}.
 
     \subsubsection{Video\_chip}
     \dofigure{video_chip}{Video\_chip}
-    This chip controls one column of the screen; to control one display we need to connect 32 of these chips in a row. Because this chip is intended to be connected to other \chip{video\_chip}s, most of it's inputs are wired directly to corresponding outputs (except \pin{chipID}). \pin{chipID} actually defines column number the chip is connected to, so \pin{chipID out} pin is set to \pin{chipID input}+1.
-    In {\itshape gameplay} mode this chip draws ball at specified height if \pin{ballX}  equals to \pin{chipID}. Also it draws bat if \pin{chipID} equals to 3 (left bat) or 28 (right bat). \pin{leftbatY} and \pin{rightbatY} define coordinate of the bottommost pixel of corresponding bat. The {\itshape video} mode is enabled by bit 7 of \pin{controlIn} and will be described later.
+    This chip controls one column of the screen; to control display we need to connect 32 of these chips in a row. Because this chip is intended to be connected to other \chip{video\_chip}s, most of it's inputs are wired directly to corresponding outputs (except \pin{chipID}). \pin{chipID} actually defines column number the chip is connected to, so \pin{chipID out} pin is set to \pin{chipID input}+1.
+    In {\itshape gameplay} mode this chip draws ball at specified height, if \pin{ballX}  equals to \pin{chipID}. Also it draws bat, if \pin{chipID} equals to 3 (left bat) or 28 (right bat). \pin{leftbatY} and \pin{rightbatY} define Y coordinate of the bottommost pixel of corresponding bat. The {\itshape video} mode is enabled by bit 7 of \pin{controlIn} and will be described later.
 
-    \subsubsection{Video\_section}
+    \subsubsection{Video\_section chip}
     This is just an assembly of 8 \chip{video\_chip}s connected one after another. 
 
     \subsubsection{Video\_player}
@@ -135,7 +132,7 @@
         }
     \end{pins}
 
-    This chip has ROM with all animations. One animation is simply a sequency of frames, and one frame is a sequence of 32 32-bit values (columns). To draw one frame of animation, this chip must send all columns of this frames to corresponding \chip{video\_chip}s. To do so, it firstly selects needed chip with bits 0-4 of \pin{ctrl}. Then it sets \pin{data} to current column of the image, and by rising bit 5 of \pin{ctrl} it tells selected \chip{video\_chip} to store column data in intermediate register. When the whole frame is stored in these registers, it raises bit 6 of \pin{ctrl}, so all \chip{video\_chip}s update their outputs simultaneously. Bit 7 of \pin{ctrl} switches \chip{video\_chip}s into {\itshape{video}} mode.
+    This chip has ROM with all animations. One animation is simply a sequence of frames, and one frame is a sequence of 32 32-bit values (columns). To draw one frame of animation, this chip must send all columns of this frames to corresponding \chip{video\_chip}s. To do so, it firstly selects needed chip with bits 0-4 of \pin{ctrl}. Then it sets \pin{data} to current column of the image, and by rising bit 5 of \pin{ctrl} it tells selected \chip{video\_chip} to store column data in intermediate register. When the whole frame is stored in these registers, it raises bit 6 of \pin{ctrl}, so all \chip{video\_chip}s update their outputs simultaneously. Bit 7 of \pin{ctrl} switches \chip{video\_chip}s into {\itshape{video}} mode.
 
     Constants below the chip define start and end addresses of all animations.
 
@@ -185,15 +182,15 @@
     This chip is responsible for all gameplay mechanics.
 
     Let's define some internal terminology for later use in this subsection:\begin{itemize}
-        \item hit - event when ball touches vertical edge of the screen
-        \item posReset - event triggered on reset and hit
+        \item hit - event triggered when ball touches vertical edge of the screen
+        \item posReset - event triggered on game reset and hit
         \item bx, by - ball coordinates
         \item vx, vy - ball velocity
     \end{itemize}
     Ball coordinates and velocity are represented as 16-bit fixed-point numbers (fraction part stored in bits 0-6).
 
 
-    Every clock cycle  ball coordinates are updated by corresponding velocity components, then velocity is updated if ball collision occurred. Also it counts players' score and adds smoothness to right bat's movement (since AI sets it's position only once while the ball is moving towards it). Bat collision is detected by comparison of x coordinate of ball and bar, and wall collision detection is detected when addition of velocity component to ball coordinate cause overflow.
+    Every clock cycle  ball coordinates are updated by corresponding velocity components, then velocity is updated, if ball collision occurred. Also it counts players' score and adds smoothness to right bat's movement (since AI sets it's position only once, while the ball is moving towards it). Bat collision is detected by comparison of x coordinate of ball and bar, and wall collision is detected, when addition of velocity component to ball coordinate causes overflow.
     
     
 
@@ -204,17 +201,17 @@
         \includegraphics[width=0.48\textwidth]{ball_position_calculation}
         \caption{Ball position calculation unit}
     \end{wrapfigure}
-    This part of \chip{kinematic} controller is responsible for storing and updating (on every clock cycle) ball coordinates. If there was no hit, it calculates $bx \leftarrow bx+vx$ and $by \leftarrow by+vy$. If there was a hit, it resets ball position and places the ball on side of the screen so the ball will fly through the whole screen to player eho get the point at this tick (side is selected based on the ball direction).
+    This part of \chip{kinematic} controller is responsible for storing and updating (on every clock cycle) ball coordinates. If there was no hit, it calculates $bx \leftarrow bx+vx$ and $by \leftarrow by+vy$. If there was a hit, it resets ball position and places the ball on side of the screen, so the ball will fly through the whole screen to player who got a point at this tick (side is selected based on the ball direction).
     \WFfill
     \WFclear
 
     \subsection{Ball velocity calculation}
     \dofigure{ball_velocity_calculation}{Ball velocity calculation unit}
-    This part is responsible for storage and updation of ball velocity.
-    It separately stores ball angle (a value from $[-52^{\circ};+52^{\circ}]$ mapped to $[-127;127]$) and ball direction along X axis (in vxneg register, 1 - negative direction, 0 - positive direction). If posReset happens, it sets angle to random value, and sets X direction so the ball will fly towards the player who got point on this tick. If the ball collides with the bat, it changes X direction to opposite.
-    When ball hits horizontal edge of the screen, it just negates it's angle, but when the ball is reflected by bat, it sets angle to $by-bat$, so, for example, if the ball was reflected by top side of the bat, it will fly upwards.
+    This part is responsible for storing and updating of ball velocity.
+    It separately stores ball angle (a value from $[-52^{\circ};+52^{\circ}]$ mapped to $[-127;127]$) and ball direction along X axis (in vxneg register, 1 - negative direction, 0 - positive direction). If posReset happens, it sets angle to random value, and sets X direction and the ball will fly towards the player who got point on this tick. If the ball collides with the bat, it changes X direction to opposite.
+    When ball hits horizontal edge of the screen, it just negates it's angle, but when the ball is reflected by bat, it sets angle to $by-bat$. For example, if the ball was reflected by top side of the bat, it will fly upwards.
 
-    Also this unit slightly changes angle by random value after the ball travels half the distance from left side to right side of the screen, so AI sometimes will miss.
+    Also this unit slightly changes angle by random value after the ball travels half a distance from left side to right side of the screen, so AI will miss sometimes.
 
     Vx and vy are calculated as $\cos{angle}$ and $\sin{angle}$ respectively by \chip{velocity\_calculator} chip. It just reads this values from pregenerated ROM chips.
 
@@ -227,7 +224,7 @@
     
     \subsection{Miscellaneous circuitry}
     \dofigure{misc}{Miscelanious circuitry}
-    \chip{AI} chip is placed in the top right corner of the picture. Note that bx, by, vx, vy are connected to it through registers. Their values are updated only when ball starts flying from left  to right. These registers serve two purposes: first, the prevent ai from cheating by setting bat coordinate to ball coordinate in loop, an second, they prevent data corruption, since Cdm-8 cannot read input values instantly, and these values can change in the middle of reading.
+    \chip{AI} chip is placed in the top right corner of the picture. Note that bx, by, vx, vy are connected to it through registers. Their values are updated only when ball starts flying from left  to right. These registers serve two purposes: first, they prevent ai from cheating by setting bat coordinate to ball coordinate in loop, and second, they prevent data corruption, since Cdm-8 cannot read input values instantly, and these values can change in the middle of reading.
 
     \chip{Video\_chip} is placed in the bottom right corner. It is connected to animation selection circuitry. Animation numbers: 0 - startup, 1 - win, 2 - loose.
 
